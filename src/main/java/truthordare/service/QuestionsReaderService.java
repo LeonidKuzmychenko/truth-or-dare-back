@@ -1,63 +1,74 @@
 package truthordare.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 import truthordare.model.QuestionEntity;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import static ch.qos.logback.core.util.LocationUtil.CLASSPATH_SCHEME;
+import java.util.stream.Stream;
 
 @Service
 @AllArgsConstructor
 public class QuestionsReaderService {
 
-    private final ResourcePatternResolver resourcePatternResolver;
 
-    public List<QuestionEntity> read() throws IOException {
-        Resource[] resources = resourcePatternResolver.getResources(CLASSPATH_SCHEME + "questions/*");
-        return Arrays.stream(resources).map(this::readQuestions).filter(Objects::nonNull).flatMap(Arrays::stream).collect(Collectors.toList());
+    private final ResourceLoader resourceLoader;
+
+    public List<QuestionEntity> read() {
+
+//        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("questions");
+//        File file = new File()
+
+        return Stream.of("questions/level_1.json",
+                        "questions/level_2.json",
+                        "questions/level_3.json",
+                        "questions/level_4.json",
+                        "questions/level_5.json")
+                .map(this::read)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
-    public QuestionEntity[] readQuestions(Resource resource) {
-        QuestionEntity[] questionEntities = parseJson(resource, QuestionEntity[].class);
-        Integer level = readNumberFromFileName(resource);
-        for (QuestionEntity questionEntity : questionEntities) {
-            questionEntity.setLevel(level);
+
+    public String readOne(String path) {
+        InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(path);
+        if (inputStream != null) {
+            String collect = new BufferedReader(new InputStreamReader(inputStream)).lines().collect(Collectors.joining(""));
+            return collect;
+        } else {
+            return null;
         }
-        return questionEntities;
     }
 
-    public <T> T[] parseJson(Resource resource, Class<T[]> clazz) {
+    public List<QuestionEntity> read(String path) {
         try {
-            URI uri = resource.getURI();
-            Path path = Paths.get(uri);
-            String json = Files.readString(path);
-            return new ObjectMapper().readValue(json, clazz);
-        } catch (IOException e) {
+            String json = readOne(path);
+            QuestionEntity[] questionEntities = new ObjectMapper().readValue(json, QuestionEntity[].class);
+            Integer level = readNumberFromFileName(path);
+            for (QuestionEntity questionEntity : questionEntities) {
+                questionEntity.setLevel(level);
+            }
+            return List.of(questionEntities);
+        } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public Integer readNumberFromFileName(Resource resource) {
-        String name = resource.getFilename();
-        String nameNullable = Optional.ofNullable(name).orElseThrow(() -> new RuntimeException("file name is null"));
+
+    public Integer readNumberFromFileName(String path) {
         Pattern pattern = Pattern.compile("(?<=level_)\\d+(?=\\.json)");
-        Matcher matcher = pattern.matcher(nameNullable);
+        Matcher matcher = pattern.matcher(path);
         String value = matcher.results().findFirst().orElseThrow(() -> new RuntimeException("file name does not contain level")).group();
         try {
             return Integer.parseInt(value);

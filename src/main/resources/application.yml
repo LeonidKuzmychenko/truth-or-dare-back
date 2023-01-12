@@ -1,15 +1,15 @@
 server:
-  port: 8080
+  port: 5000
 
 pg:
   data-source:
-    host: localhost
+    host: truth-or-dare-db.c3lnk3jdj6dv.eu-central-1.rds.amazonaws.com
     port: 5432
-    name: test-db
+    name: postgres
     username: postgres
-    password: demo
+    password: postgres5005
     driverClassName: org.postgresql.Driver
-    jdbcUrl: jdbc:postgresql://${pg.data-source.host}:${pg.data-source.port}/${pg.data-source.name}?serverTimezone=UTC&cachePrepStmts=true&useServerPrepStmts=true&rewriteBatchedStatements=true
+    jdbcUrl: jdbc:postgresql://${pg.data-source.host}:${pg.data-source.port}/${pg.data-source.name}
 
 spring:
   jpa:

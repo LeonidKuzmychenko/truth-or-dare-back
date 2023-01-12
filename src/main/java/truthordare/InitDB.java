@@ -11,6 +11,7 @@ import truthordare.repository.QuestionEntityRepository;
 import truthordare.service.QuestionsReaderService;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @Component
@@ -23,7 +24,7 @@ public class InitDB implements ApplicationRunner {
 
     @Override
     @Transactional
-    public void run(ApplicationArguments args) throws IOException {
+    public void run(ApplicationArguments args) throws IOException, URISyntaxException {
         List<QuestionEntity> questionEntities = questionsReaderService.read();
         repository.deleteAll();
         jdbcTemplate.batchUpdate(
