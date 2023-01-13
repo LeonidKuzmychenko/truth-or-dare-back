@@ -1,5 +1,7 @@
 server:
   port: 5000
+  servlet:
+    contextPath: /
 
 pg:
   data-source:
@@ -20,3 +22,10 @@ spring:
       hibernate:
         generate_statistics: false
         format_sql: true
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "health,info"
+

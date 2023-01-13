@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+pg:
+  data-source:
+    host: localhost
+    port: 5432
+    name: test-db
+    username: postgres
+    password: demo
+    driverClassName: org.postgresql.Driver
+    jdbcUrl: jdbc:postgresql://${pg.data-source.host}:${pg.data-source.port}/${pg.data-source.name}?serverTimezone=UTC&cachePrepStmts=true&useServerPrepStmts=true&rewriteBatchedStatements=true
+
+spring:
+  jpa:
+    generate-ddl: true
+    hibernate.ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        generate_statistics: false
+        format_sql: true
